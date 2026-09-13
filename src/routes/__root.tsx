@@ -2,6 +2,9 @@ import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-r
 import type { ReactNode } from "react";
 
 import appCss from "~/styles/app.css?url";
+/* First-party analytics bundle: fires a pageview beacon once per full page
+   load (deferred, non-blocking). No-op during SSR. */
+import "../lib/analytics";
 
 const STORE_URL = "https://783aeabe91b1a4a10aee76a4357372c8.ctonew.app";
 

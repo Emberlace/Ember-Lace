@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { trackCheckoutSuccess } from "../lib/analytics";
 
 /* /checkout-confirm?session_id=cs_... — return destination for Stripe Hosted
    Checkout success_url. Fetches GET /api/checkout-status server-side (never
@@ -9,11 +10,21 @@ import { useEffect, useState } from "react";
    - unpaid    → neutral "order not completed" state with a retry button;
    - error     → friendly error with a way back to the store.
    The fetch is what matters here — opening this page with any session id
-   (even a placeholder one) tells the customer the truth from Stripe. */
+   (even a placeholder one) tells the customer the truth from Stripe.
+   When the payment is confirmed, one checkout_success event is beamed to
+   /api/evt (order ref + amount from Stripe) — deduped per order ref so a
+   refresh of this page can't double-count a conversion. */
 
 type Status =
   | { phase: "loading" }
-  | { phase: "done"; paid: boolean; orderRef: string; status: string; message: string }
+  | {
+      phase: "done";
+      paid: boolean;
+      orderRef: string;
+      status: string;
+      message: string;
+      amountTotal: number | null; // cents, from Stripe (null when absent)
+    }
   | { phase: "error"; error: string };
 
 const SESSION_ID_RE = /^cs_(test|live)_[A-Za-z0-9]+$/;
@@ -43,6 +54,7 @@ function CheckoutConfirm() {
           orderRef?: string;
           status?: string;
           message?: string;
+          amountTotal?: number | null;
         } | null;
         if (cancelled) return;
         if (!res.ok || !data?.ok || !data.status) {
@@ -60,6 +72,7 @@ function CheckoutConfirm() {
           orderRef: data.orderRef ?? "",
           status: data.status,
           message: data.message ?? "Order not completed",
+          amountTotal: typeof data.amountTotal === "number" ? data.amountTotal : null,
         });
       })
       .catch(() => {
@@ -73,6 +86,18 @@ function CheckoutConfirm() {
       cancelled = true;
     };
   }, []);
+
+  /* Conversion beacon: once the server confirms payment, count the sale.
+     trackCheckoutSuccess dedupes per order ref (localStorage), so remounts
+     and refreshes of this page can't double-count. */
+  useEffect(() => {
+    if (status.phase === "done" && status.paid && status.orderRef) {
+      trackCheckoutSuccess(
+        status.orderRef,
+        status.amountTotal === null ? null : status.amountTotal / 100,
+      );
+    }
+  }, [status]);
 
   return (
     <div className="min-h-screen bg-noir text-ivory">

@@ -22,3 +22,5 @@ src/routeTree.gen.ts
 
 # Webhook fallback secret (whsec pinned for stale-runtime env immunity); never commit.
 src/data/webhook-secret.json
+# First-party analytics event log (runtime state); never commit.
+/data/
