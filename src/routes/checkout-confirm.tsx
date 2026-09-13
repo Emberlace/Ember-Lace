@@ -13,7 +13,14 @@ import { useEffect, useState } from "react";
 
 type Status =
   | { phase: "loading" }
-  | { phase: "done"; paid: boolean; orderRef: string; status: string; message: string }
+  | {
+      phase: "done";
+      paid: boolean;
+      orderRef: string;
+      status: string;
+      message: string;
+      amountTotal: number | null;
+    }
   | { phase: "error"; error: string };
 
 const SESSION_ID_RE = /^cs_(test|live)_[A-Za-z0-9]+$/;
@@ -43,6 +50,7 @@ function CheckoutConfirm() {
           orderRef?: string;
           status?: string;
           message?: string;
+          amountTotal?: number | null;
         } | null;
         if (cancelled) return;
         if (!res.ok || !data?.ok || !data.status) {
@@ -54,12 +62,40 @@ function CheckoutConfirm() {
           });
           return;
         }
+        const paid = data.status === "paid" || data.status === "no_payment_required";
+        const amountTotal = typeof data.amountTotal === "number" ? data.amountTotal : null;
+
+        if (paid && amountTotal !== null && amountTotal >= 0) {
+          const eventKey = `emberlace:meta-purchase:${data.orderRef || sid}`;
+          try {
+            if (!window.localStorage.getItem(eventKey)) {
+              const fbq = (
+                window as Window & {
+                  fbq?: (...args: unknown[]) => void;
+                }
+              ).fbq;
+              if (fbq) {
+                fbq(
+                  "track",
+                  "Purchase",
+                  { value: amountTotal / 100, currency: "USD" },
+                  { eventID: data.orderRef || sid },
+                );
+                window.localStorage.setItem(eventKey, "sent");
+              }
+            }
+          } catch {
+            // Tracking must never interrupt the customer's confirmation page.
+          }
+        }
+
         setStatus({
           phase: "done",
-          paid: data.status === "paid" || data.status === "no_payment_required",
+          paid,
           orderRef: data.orderRef ?? "",
           status: data.status,
           message: data.message ?? "Order not completed",
+          amountTotal,
         });
       })
       .catch(() => {
