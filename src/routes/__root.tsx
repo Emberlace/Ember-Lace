@@ -22,7 +22,10 @@ const SITE_SCHEMA = {
   url: STORE_URL,
 };
 
-const META_PIXEL_CODE = `
+/* Set VITE_META_PIXEL_ID at build time (owner's Meta pixel) — unset = pixel disabled. */
+const META_PIXEL_ID = (import.meta.env.VITE_META_PIXEL_ID as string | undefined)?.trim() ?? "";
+const META_PIXEL_CODE = META_PIXEL_ID
+  ? `
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -31,9 +34,10 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '2974846332866187');
+fbq('init', '${META_PIXEL_ID}');
 fbq('track', 'PageView');
-`;
+`
+  : "";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -91,7 +95,9 @@ function RootDocument({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: META_PIXEL_CODE }} />
+        {META_PIXEL_CODE && (
+          <script dangerouslySetInnerHTML={{ __html: META_PIXEL_CODE }} />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_SCHEMA) }}
