@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Didot", "Bodoni MT", "Playfair Display", "Cormorant Garamond",
+    Georgia, "Times New Roman", serif;
+  --font-body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  /* Bold & Sultry theme — dark base w/ rosy warmth, gold + deep red accents */
+  --color-noir: #2a1119;
+  --color-coal: #371820;
+  --color-card: #46222e;
+  --color-ivory: #f5ece4;
+  --color-rosetaupe: #b99b8d;
+  --color-gold: #c9a24b;
+  --color-goldlight: #e3c878;
+  --color-crimson: #a31621;
+  --color-oxblood: #7f1d2d;
+
+  /* legacy tokens (kept for compat; rosewood/ember only as gradient shadows) */
+  --color-cream: #faf5ef;
+  --color-sand: #f3e9dc;
+  --color-espresso: #2b1d16;
+  --color-cocoa: #4a3226;
+  --color-ember: #b4431f;
+  --color-ember-deep: #8c3013;
+  --color-blush: #e8b4a0;
+  --color-rosewood: #7c3b4f;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  html,
+  body {
+    @apply antialiased;
+    background-color: var(--color-noir);
+    color: var(--color-ivory);
+    font-family: var(--font-body);
+  }
+  ::selection {
+    background: var(--color-gold);
+    color: #100b0e;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  /* Lace-dot texture, light-on-dark version for the sultry theme */
+  .lace-dots {
+    background-image: radial-gradient(
+      rgba(227, 200, 120, 0.13) 1.2px,
+      transparent 1.3px
+    );
+    background-size: 14px 14px;
+  }
+  .lace-dots-dark {
+    background-image: radial-gradient(
+      rgba(245, 236, 228, 0.07) 1.2px,
+      transparent 1.3px
+    );
+    background-size: 14px 14px;
+  }
+}

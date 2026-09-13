@@ -1,0 +1,16 @@
+{
+ "count": 120,
+ "braCount": 35,
+ "avgWholesale": 8.45,
+ "avgRetail": 25.44,
+ "avgMargin": 16.99,
+ "usCount": 115,
+ "unknownWarehouseCount": 5,
+ "nonUsCount": 0,
+ "byCollection": {
+  "lace": 10,
+  "everyday": 106,
+  "luxe": 4
+ },
+ "source": "CJ catalog, +7.5% retail 2026-09-08"
+}

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://783aeabe91b1a4a10aee76a4357372c8.ctonew.app/sitemap.xml

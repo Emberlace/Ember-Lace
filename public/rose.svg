@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Ember and Lace red rose logo">
+  <g>
+    <ellipse cx="24" cy="13" rx="7.5" ry="10.5" fill="#7f1d2d"/>
+    <ellipse cx="24" cy="13" rx="7.5" ry="10.5" fill="#8c1f2c" transform="rotate(72 24 24)"/>
+    <ellipse cx="24" cy="13" rx="7.5" ry="10.5" fill="#a31621" transform="rotate(144 24 24)"/>
+    <ellipse cx="24" cy="13" rx="7.5" ry="10.5" fill="#8c1f2c" transform="rotate(216 24 24)"/>
+    <ellipse cx="24" cy="13" rx="7.5" ry="10.5" fill="#7f1d2d" transform="rotate(288 24 24)"/>
+    <circle cx="24" cy="24" r="9.5" fill="#a31621"/>
+    <circle cx="24" cy="24" r="9.5" fill="none" stroke="#5e1420" stroke-width="1"/>
+    <path d="M24 19c2.8 0 5 2 5 4.6 0 2.8-2.2 4.9-4.8 4.9-2.4 0-4.2-1.8-4.2-4.1 0-2 1.5-3.5 3.3-3.5" fill="none" stroke="#e8b4a0" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="24" cy="24.5" r="1.8" fill="#c9a24b"/>
+  </g>
+</svg>
