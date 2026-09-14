@@ -5,7 +5,6 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-import CHECKOUT_LINKS from "../data/checkout-links.json";
 import LIVE_CATALOG from "../data/live-catalog.json";
 import type { Collection } from "../data/products";
 import {
@@ -30,7 +29,6 @@ import {
   useCheckoutOpen,
 } from "../lib/cart-store";
 
-const LIVE_CHECKOUT_URL = "https://buy.stripe.com/6oU00j06k6Pc3GS8tZ4Vy07";
 
 /* Live CJ catalog: 50 real products (id, name, wholesale, retail, image,
    sizes, usWarehouse, cjPid, cjSku). Wholesale/margin never render. */
@@ -49,10 +47,6 @@ type LiveProduct = {
 };
 
 const CATALOG = LIVE_CATALOG as unknown as LiveProduct[];
-
-/* Checkout links map: { cjId: Stripe paymentUrl }. The lead fills in more
-   URLs over time — code reads the map at build, no code change per link. */
-const LINKS: Record<string, string> = CHECKOUT_LINKS;
 
 /* Trim absurdly-long supplier names to a tasteful length at a word boundary. */
 function trimName(name: string, max = 72): string {
@@ -1342,13 +1336,11 @@ function Bestsellers() {
               over $250 at checkout
             </p>
             <a
-              href={LIVE_CHECKOUT_URL}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Buy Lace-Panel Collar Top securely via Stripe"
+              href="#bestsellers"
+              aria-label="Choose a size for secure tracked checkout"
               className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-noir shadow transition hover:bg-goldlight"
             >
-              Buy Securely
+              Choose a size
             </a>
             <span className="text-xs text-rosetaupe">
               Discreet packaging · Free 60-day exchanges
@@ -1424,7 +1416,6 @@ function Bestsellers() {
               const saved = wishlist.includes(p.id);
               const isLuxe = p.collection === "luxe";
               const title = trimName(p.name);
-              const payUrl = LINKS[p.id] ?? (p.id === "cj-2609070735461630000" ? LIVE_CHECKOUT_URL : undefined);
               const variants = Array.isArray(p.variants) ? p.variants : [];
               const selIdx = Math.min(sizeSel[p.id] ?? 0, Math.max(0, variants.length - 1));
               const selVariant = variants.length > 0 ? variants[selIdx] : undefined;
@@ -1510,16 +1501,22 @@ function Bestsellers() {
                     >
                       Add to cart 🛍
                     </button>
-                    {payUrl ? (
-                      <a
-                        href={payUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={`Buy ${title} securely via Stripe`}
+                    {selVariant?.vid ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          addToCart(p.id, 1, {
+                            cjVid: selVariant.vid,
+                            size: selVariant.variantKey || selVariant.size,
+                          });
+                          setCartOpen(false);
+                          setCheckoutOpen(true);
+                        }}
+                        aria-label={`Buy ${title} through secure tracked checkout`}
                         className="flex-1 rounded-full border border-gold/40 px-3 py-1.5 text-center text-xs font-semibold whitespace-nowrap text-goldlight transition hover:bg-gold/10"
                       >
                         Buy Securely
-                      </a>
+                      </button>
                     ) : (
                       <a
                         href="#join"
@@ -1537,7 +1534,7 @@ function Bestsellers() {
             )}
             <p className="mt-6 text-center text-xs text-rosetaupe/80">
           Prices in USD. 10% off orders over $250, applied automatically at checkout.
-          Pay via Stripe link first, then confirm — your order is placed with our warehouse.
+          Every paid order returns to a confirmation page and is sent to our warehouse.
         </p>
       </div>
     </section>
@@ -1773,13 +1770,13 @@ function CheckoutModal() {
       } | null;
       if (!res.ok || !data?.ok || !data.url) {
         setCheckoutError(
-          data?.error ?? "We couldn't start secure checkout — please use the payment links below for now. ♡"
+          data?.error ?? "We couldn't start secure checkout — please try again in a moment. ♡"
         );
         return;
       }
       window.location.href = data.url;
     } catch {
-      setCheckoutError("We couldn't reach our payment desk — please use the payment links below for now. ♡");
+      setCheckoutError("We couldn't reach our payment desk — please try again in a moment. ♡");
     } finally {
       setCheckoutStarting(false);
     }
@@ -1797,9 +1794,6 @@ function CheckoutModal() {
   const total = cartTotal(subtotal, earlyAccess);
 
   if (!open) return null;
-
-  const payUrlFor = (id: string): string | undefined =>
-    LINKS[id] ?? (id === "cj-2609070735461630000" ? LIVE_CHECKOUT_URL : undefined);
 
   const close = () => {
     setCheckoutOpen(false);
@@ -1984,54 +1978,10 @@ function CheckoutModal() {
               </p>
             </div>
 
-            {/* Pay step (fallback) */}
-            <div className="mt-5 rounded-2xl border border-gold/20 bg-card p-5">
-              <h3 className="text-sm font-bold tracking-wide text-goldlight uppercase">
-                Prefer paying by link? (fallback)
-              </h3>
-              {joined.length === 0 ? (
-                <p className="mt-2 text-sm text-rosetaupe">Nothing to pay for yet.</p>
-              ) : (
-                <ul className="mt-3 space-y-2">
-                  {joined.map(({ line, product }) => {
-                    const payUrl = payUrlFor(product.id);
-                    return (
-                      <li
-                        key={lineKey(line)}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-noir/60 px-4 py-2.5 ring-1 ring-gold/15"
-                      >
-                        <span className="min-w-0 flex-1 truncate text-sm text-ivory/90">
-                          {trimName(product.name, 48)}{line.size ? ` · ${line.size}` : ""} <span className="text-rosetaupe">× {line.qty}</span>
-                        </span>
-                        {payUrl ? (
-                          <a
-                            href={payUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold whitespace-nowrap text-noir transition hover:bg-goldlight"
-                          >
-                            Pay {moneyExact(product.retail * line.qty)} →
-                          </a>
-                        ) : (
-                          <span className="text-xs font-medium text-rosetaupe">
-                            Notify me — pay link coming
-                          </span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-              <p className="mt-3 text-xs leading-relaxed text-rosetaupe">
-                Pay each item with its Stripe link (opens in a new tab), using the same
-                payment email for all items — then confirm below so we can route your order.
-              </p>
-            </div>
-
             {/* Confirm form */}
             <form onSubmit={submit} noValidate className="mt-5 rounded-2xl border border-gold/20 bg-card p-5">
               <h3 className="text-sm font-bold tracking-wide text-goldlight uppercase">
-                Paid by link? Confirm your order (fallback)
+                Need help with an earlier payment? Confirm it here
               </h3>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
