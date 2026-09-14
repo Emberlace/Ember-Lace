@@ -83,9 +83,11 @@ function CheckoutConfirm() {
           } catch {
             /* storage unavailable — cart clearing is best-effort */
           }
-          const eventKey = `emberlace:meta-purchase:${data.orderRef || sid}`;
+          const eventId = data.orderRef || sid;
+          const eventKey = `emberlace:meta-purchase-v2:${eventId}`;
           try {
             if (!window.localStorage.getItem(eventKey)) {
+              const value = amountTotal / 100;
               const fbq = (
                 window as Window & {
                   fbq?: (...args: unknown[]) => void;
@@ -95,11 +97,26 @@ function CheckoutConfirm() {
                 fbq(
                   "track",
                   "Purchase",
-                  { value: amountTotal / 100, currency: "USD" },
-                  { eventID: data.orderRef || sid },
+                  { value, currency: "USD" },
+                  { eventID: eventId },
                 );
-                window.localStorage.setItem(eventKey, "sent");
               }
+              // Official image-pixel fallback: reports the verified purchase
+              // even when the browser cannot load Meta's JavaScript library.
+              const params = new URLSearchParams({
+                id: "2974846332866187",
+                ev: "Purchase",
+                dl: window.location.href,
+                rl: document.referrer,
+                ts: String(Date.now()),
+                "cd[value]": String(value),
+                "cd[currency]": "USD",
+                eid: eventId,
+                noscript: "1",
+              });
+              const beacon = new Image(1, 1);
+              beacon.src = `https://www.facebook.com/tr/?${params.toString()}`;
+              window.localStorage.setItem(eventKey, "sent");
             }
           } catch {
             // Tracking must never interrupt the customer's confirmation page.
