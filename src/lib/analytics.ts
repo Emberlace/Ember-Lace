@@ -11,6 +11,43 @@
 const EVT_URL = "/api/evt";
 const FIRST_TOUCH_KEY = "el_first_touch";
 const CONV_DONE_PREFIX = "el_conv_done_";
+const META_PIXEL_ID = "2974846332866187";
+
+/* Start Meta reporting from the client bundle as a fallback when the hosting
+   layer omits inline head scripts. If the head script already started it,
+   this is a no-op, so page views and purchases are never duplicated. */
+function ensureMetaPixel(): void {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const w = window as Window & {
+    fbq?: ((...args: unknown[]) => void) & {
+      callMethod?: (...args: unknown[]) => void;
+      queue?: unknown[][];
+      loaded?: boolean;
+      version?: string;
+      push?: (...args: unknown[]) => void;
+    };
+    _fbq?: unknown;
+  };
+  if (w.fbq) return;
+
+  const fbq = ((...args: unknown[]) => {
+    if (fbq.callMethod) fbq.callMethod(...args);
+    else fbq.queue?.push(args);
+  }) as NonNullable<typeof w.fbq>;
+  fbq.queue = [];
+  fbq.loaded = true;
+  fbq.version = "2.0";
+  fbq.push = (...args: unknown[]) => fbq(...args);
+  w.fbq = fbq;
+  w._fbq = fbq;
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = "https://connect.facebook.net/en_US/fbevents.js";
+  document.head.appendChild(script);
+  fbq("init", META_PIXEL_ID);
+  fbq("track", "PageView");
+}
 
 export type EvtSrc = "referrer" | "utm" | "direct";
 
@@ -111,6 +148,7 @@ export function trackCheckoutSuccess(orderRef: string, amountUsd: number | null)
    macrotask) so it never blocks first paint. SPA route changes don't re-run
    this module, so client-side navigations can't double-count a load. */
 if (typeof window !== "undefined" && typeof document !== "undefined") {
+  ensureMetaPixel();
   const fire = (): void => trackPageview();
   if ("requestIdleCallback" in window) {
     window.requestIdleCallback(fire, { timeout: 1500 });
