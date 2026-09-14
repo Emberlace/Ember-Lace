@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { trackCheckoutSuccess } from "../lib/analytics";
+import { clearCart } from "../lib/cart-store";
 
 /* /checkout-confirm?session_id=cs_... — return destination for Stripe Hosted
    Checkout success_url. Fetches GET /api/checkout-status server-side (never
@@ -70,6 +71,18 @@ function CheckoutConfirm() {
         const amountTotal = typeof data.amountTotal === "number" ? data.amountTotal : null;
 
         if (paid && amountTotal !== null && amountTotal >= 0) {
+          /* Payment confirmed — the bought items must leave the cart. Guarded
+             per session (sessionStorage) so a refresh or a later back-button
+             visit can't clear a cart the shopper has since rebuilt. */
+          try {
+            const clearedKey = `emberlace:cart-cleared:${sid}`;
+            if (!window.sessionStorage.getItem(clearedKey)) {
+              clearCart();
+              window.sessionStorage.setItem(clearedKey, "1");
+            }
+          } catch {
+            /* storage unavailable — cart clearing is best-effort */
+          }
           const eventKey = `emberlace:meta-purchase:${data.orderRef || sid}`;
           try {
             if (!window.localStorage.getItem(eventKey)) {
