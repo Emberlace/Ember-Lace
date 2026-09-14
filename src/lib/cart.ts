@@ -1,9 +1,11 @@
 /* Ember & Lace — cart math (pure functions, shared by UI + server).
    Discount rules (single source of truth — the server's charged total MUST
    match the client's displayed total, both call these):
-   - Early-shopper entitlement (joined the email list): 15% off, always.
-   - Else: AUTOMATIC 10% off when subtotal >= $250 (bulk). No code needed.
-   Never stack: entitled shoppers get 15%, never 10% on top. */
+   - AUTOMATIC 10% off when subtotal >= $250 (bulk). No code needed.
+   - The 15% early-shopper tier is RETIRED (2026-09-14): the discount sold
+     below wholesale at the current +7.5% markup, and the client no longer
+     sends earlyAccess=true. The rule below is kept for math compatibility;
+     in practice earlyAccess is always false. */
 
 export const BULK_THRESHOLD = 250;
 export const BULK_RATE = 0.1;

@@ -198,7 +198,7 @@ function LaunchDropBanner() {
 function AnnouncementBar() {
   return (
     <div className="lace-dots bg-noir px-4 py-2 text-center text-[13px] font-medium tracking-wide text-goldlight">
-      Early shoppers get 15% off launch day — join the list below ♡ · 10% off
+      Join the early list below ♡ · 10% off
       orders over $250, applied at checkout
     </div>
   );
@@ -286,7 +286,7 @@ function Nav() {
             href="#join"
             className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-noir shadow transition hover:bg-goldlight"
           >
-            Get 15% off
+            Join the list
           </a>
         </div>
       </div>
@@ -1664,7 +1664,7 @@ function CartDrawer() {
               </div>
               {discount > 0 && (
                 <div className="mt-1 flex justify-between text-sm font-medium text-goldlight">
-                  <span>{earlyAccess ? "15% early-shopper discount — applied" : "10% bulk discount — applied automatically"}</span>
+                  <span>10% bulk discount — applied automatically</span>
                   <span>−{moneyExact(discount)}</span>
                 </div>
               )}
@@ -1941,7 +1941,7 @@ function CheckoutModal() {
               </div>
               {discount > 0 && (
                 <div className="mt-1 flex justify-between text-sm font-medium text-goldlight">
-                  <span>{earlyAccess ? "15% early-shopper discount — applied" : "10% bulk discount — applied automatically"}</span>
+                  <span>10% bulk discount — applied automatically</span>
                   <span>−{moneyExact(discount)}</span>
                 </div>
               )}
@@ -2175,15 +2175,13 @@ function ConfidenceFaq() {
 }
 const EMAIL_KEY = "el-early-list";
 
-/** True when the visitor joined the early list ("el-early-list" in
-    localStorage) — entitles them to the 15% early-shopper discount instead
-    of the 10%-over-$250 bulk rule. SSR-safe, storage-unavailable-safe. */
+/** 15% early-shopper promo RETIRED (2026-09-14): the discount sold below
+    wholesale at the current +7.5% markup, so the client never grants the
+    entitlement anymore — checkout always goes down the 10%-over-$250 bulk
+    rule (server defaults earlyAccess=false). EMAIL_KEY still stores the
+    email-address-for-the-list signal; it no longer buys a discount. */
 function hasEarlyAccess(): boolean {
-  try {
-    return typeof localStorage !== "undefined" && !!localStorage.getItem(EMAIL_KEY);
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 function EmailCapture() {
@@ -2241,14 +2239,14 @@ function EmailCapture() {
     >
       <div className="mx-auto max-w-2xl px-4 py-14 text-center sm:px-6 sm:py-20">
         <p className="text-xs font-bold tracking-[0.22em] text-gold uppercase">
-          Early shoppers
+          Early list
         </p>
         <h2 className="font-display mt-2 text-3xl text-ivory sm:text-4xl">
-          Get 15% off launch day
+          Be first in line
         </h2>
         <p className="mt-3 text-[15px] leading-relaxed text-ivory/80">
-          Be first through the door: early access to the full size run, fit
-          guides before anyone else, and a launch-day treat. One welcome email,
+          Early access to new drops and restocks in your size, fit guidance
+          before anyone else, and first word on specials. One welcome email,
           then only the good stuff — unsubscribe anytime.
         </p>
         {status === "done" ? (
@@ -2300,7 +2298,7 @@ function EmailCapture() {
               type="submit"
               className="rounded-full bg-gold px-6 py-3 text-sm font-semibold whitespace-nowrap text-noir shadow-lg transition hover:bg-goldlight"
             >
-              Claim 15% off
+              Join the early list
             </button>
           </form>
         )}
