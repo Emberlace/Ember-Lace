@@ -2481,6 +2481,12 @@ function Footer() {
             <a href="#track" className="transition hover:text-goldlight">
               Track your order
             </a>
+            <a
+              href="mailto:ember-lace-3f346695@ctomail.io"
+              className="transition hover:text-goldlight"
+            >
+              Questions? Email us
+            </a>
             <a href="/products.json" className="transition hover:text-goldlight">
               Product feed
             </a>
