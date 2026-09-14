@@ -29,6 +29,10 @@ import webhookSecret from "~/data/webhook-secret.json";
 import { cjCreateOrder } from "../../server/cj";
 import { decodeItemsMetadata } from "../../server/items-metadata";
 import { buildCjPayload, validateOrderBody } from "../../server/order";
+import {
+  resolveSessionShipping,
+  type SessionShippingSource,
+} from "../../server/session-address";
 
 /* In-process idempotency guards: Stripe retries must not double-create a CJ
    order for the same payment. Keyed by PaymentIntent id (legacy path) and by
@@ -67,7 +71,11 @@ async function submitCjOrder(
     console.log(
       `[stripe-webhook] ${label} order rejected: ${checked.error} — customer will need manual follow-up`
     );
-    return;
+    // Throwing (not returning) is deliberate: a rejected order was NOT
+    // fulfilled, and HTTP 200 would tell Stripe "done" and stop all retries —
+    // the exact silent-drop that hit real order EL-MU1DGE82 (customer charged,
+    // no CJ order ever created). 500 → Stripe retries the event.
+    throw new Error(`order rejected: ${checked.error}`);
   }
   // Server-side only: resolved fulfillment contact/address (name + address,
   // no keys). Makes the fallback source (shipping_details vs customer_details)
@@ -166,21 +174,23 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
     );
     return;
   }
-  // Shipping/contact resolution — verified live 2026-09-12: for our hosted
-  // Checkout setup (mode=payment + shipping_address_collection, no
-  // shipping_options) Stripe does NOT populate session.shipping_details; the
-  // shipping address the customer typed arrives in
-  // session.customer_details.address instead (and on the PaymentIntent's
-  // `shipping`). Prefer shipping_details when present (other setups do
-  // populate it), else fall back to customer_details, else blank — the
-  // validator still rejects cleanly, exactly as before.
-  const sd = session.shipping_details;
-  const cd = session.customer_details;
-  const addr = sd?.address ?? cd?.address;
+  // Shipping/contact resolution — verified live 2026-09-12 and 2026-09-14.
+  // For our hosted Checkout setup (mode=payment + shipping_address_collection,
+  // no shipping_options) Stripe does NOT populate session.shipping_details.
+  // The address the customer typed can arrive in session.customer_details.address
+  // (2026-09-12) or — on newer hosted Checkout builds — in
+  // session.collected_information.shipping_details (2026-09-14, when
+  // customer_details.address is partial: line1/city/state null).
+  // resolveSessionShipping prefers whichever source has a usable street
+  // address (non-empty line1): shipping_details →
+  // collected_information.shipping_details → customer_details; the validator
+  // still rejects cleanly if all sources are partial.
+  const { addr, name, phone } = resolveSessionShipping(
+    session as unknown as SessionShippingSource
+  );
   const email =
-    (cd?.email ?? "").trim() || ((session.metadata ?? {})["web-email"] ?? "").trim();
-  const name = sd?.name?.trim() || cd?.name?.trim() || "";
-  const phone = sd?.phone?.trim() || cd?.phone?.trim() || undefined;
+    (session.customer_details?.email ?? "").trim() ||
+    ((session.metadata ?? {})["web-email"] ?? "").trim();
 
   const body = {
     name,
