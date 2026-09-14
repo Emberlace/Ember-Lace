@@ -22,8 +22,9 @@ const SITE_SCHEMA = {
   url: STORE_URL,
 };
 
-/* Set VITE_META_PIXEL_ID at build time (owner's Meta pixel) — unset = pixel disabled. */
-const META_PIXEL_ID = (import.meta.env.VITE_META_PIXEL_ID as string | undefined)?.trim() ?? "";
+/* Use the connected Ember & Lace Meta tracking ID by default; a build-time value can override it. */
+const META_PIXEL_ID =
+  (import.meta.env.VITE_META_PIXEL_ID as string | undefined)?.trim() || "2974846332866187";
 const META_PIXEL_CODE = META_PIXEL_ID
   ? `
 !function(f,b,e,v,n,t,s)
