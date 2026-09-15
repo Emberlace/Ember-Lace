@@ -1,16 +1,16 @@
 {
- "count": 120,
- "braCount": 35,
- "avgWholesale": 8.45,
- "avgRetail": 25.44,
- "avgMargin": 16.99,
- "usCount": 115,
+ "count": 132,
+ "braCount": 39,
+ "avgWholesale": 10.41,
+ "avgRetail": 29.92,
+ "avgMargin": 19.52,
+ "usCount": 127,
  "unknownWarehouseCount": 5,
  "nonUsCount": 0,
  "byCollection": {
-  "lace": 10,
-  "everyday": 106,
-  "luxe": 4
+  "lace": 13,
+  "everyday": 110,
+  "luxe": 9
  },
- "source": "CJ catalog, +7.5% retail 2026-09-08"
+ "source": "CJ catalog, +7.5% retail 2026-09-08 (add-largecup-luxe 2026-09-15: +16 real CJ products, junk matches removed -> 12 net new)"
 }
