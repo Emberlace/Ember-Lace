@@ -1,5 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type FormEvent,
+  type SetStateAction,
+} from "react";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -1292,6 +1299,11 @@ function Bestsellers() {
   const [sort, setSort] = useState<Sort>("featured");
   /* Per-card chosen variant index (size selector). Defaults to first variant. */
   const [sizeSel, setSizeSel] = useState<Record<string, number>>({});
+  /* Quick-view modal: product id open in the dialog, or null when closed. */
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
+  const quickView = quickViewId
+    ? (CATALOG.find((p) => p.id === quickViewId) ?? null)
+    : null;
 
   /* Header search (Nav) broadcasts `el:search`; sync the catalog query. */
   useEffect(() => {
@@ -1425,14 +1437,21 @@ function Bestsellers() {
                 className="group overflow-hidden rounded-2xl border border-gold/20 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:shadow-crimson/20"
               >
                 <div className="relative">
-                  <img
-                    src={p.image}
-                    alt={title}
-                    loading="lazy"
-                    className="aspect-square w-full bg-noir object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuickViewId(p.id)}
+                    aria-label={`Quick view ${title}`}
+                    className="block w-full cursor-pointer"
+                  >
+                    <img
+                      src={p.image}
+                      alt={title}
+                      loading="lazy"
+                      className="aspect-square w-full bg-noir object-cover transition duration-300 group-hover:opacity-90"
+                    />
+                  </button>
                   <span
-                    className={`absolute top-2 left-2 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                    className={`pointer-events-none absolute top-2 left-2 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                       isLuxe
                         ? "bg-gold text-noir"
                         : "bg-crimson text-ivory"
@@ -1455,8 +1474,15 @@ function Bestsellers() {
                   </button>
                 </div>
                 <div className="p-3 sm:p-4">
-                  <h3 className="text-sm leading-snug font-semibold text-ivory" title={p.name}>
-                    {title}
+                  <h3 className="text-sm leading-snug font-semibold text-ivory">
+                    <button
+                      type="button"
+                      onClick={() => setQuickViewId(p.id)}
+                      title={p.name}
+                      className="cursor-pointer text-left transition hover:text-goldlight"
+                    >
+                      {title}
+                    </button>
                   </h3>
                   <p className="mt-1 text-xs text-rosetaupe">{p.sizes}</p>
                   {variants.length > 0 ? (
@@ -1537,7 +1563,214 @@ function Bestsellers() {
           Every paid order returns to a confirmation page and is sent to our warehouse.
         </p>
       </div>
+      {quickView ? (
+        <QuickViewModal
+          product={quickView}
+          sizeSel={sizeSel}
+          setSizeSel={setSizeSel}
+          onClose={() => setQuickViewId(null)}
+        />
+      ) : null}
     </section>
+  );
+}
+
+/* ----------------------------- quick view modal ---------------------------- */
+/* Honest, in-code product copy: derived only from catalog facts (collection
+   tier + size range). No fabric/material/construction claims — the catalog
+   has no such data. Varies by tier (and lightly by id) so all 132 products
+   read naturally. */
+function quickViewBlurb(p: LiveProduct): string {
+  const range = p.sizes;
+  let seed = 0;
+  for (let i = 0; i < p.id.length; i++) seed = (seed * 31 + p.id.charCodeAt(i)) | 0;
+  const v = Math.abs(seed) % 3;
+  if (p.collection === "luxe") {
+    const copy = [
+      `An elevated Luxe piece from our size-inclusive range (${range}) — for the moments that call for something special.`,
+      `A Luxe-tier find in our size-inclusive range (${range}) — refined presence, made to be treasured.`,
+      `From our Luxe collection, in our size-inclusive range (${range}) — the little bit extra you deserve.`,
+    ];
+    return copy[v];
+  }
+  if (p.collection === "lace") {
+    const copy = [
+      `A Lace & Spice pick from our size-inclusive range (${range}) — a little drama, a lot of confidence.`,
+      `From our Lace & Spice collection, available in our size-inclusive range (${range}) — for evenings that call for more.`,
+      `A spice-kissed style from our size-inclusive range (${range}) — wear it for yourself, first.`,
+    ];
+    return copy[v];
+  }
+  const copy = [
+    `Everyday comfort from our size-inclusive range (${range}) — an easy, reach-for-it-again essential.`,
+    `A dependable everyday essential in our size-inclusive range (${range}) — simple, comfortable, honest.`,
+    `From our Everyday collection, in our size-inclusive range (${range}) — soft on rotation, easy to love.`,
+  ];
+  return copy[v];
+}
+
+function QuickViewModal({
+  product,
+  sizeSel,
+  setSizeSel,
+  onClose,
+}: {
+  product: LiveProduct;
+  sizeSel: Record<string, number>;
+  setSizeSel: Dispatch<SetStateAction<Record<string, number>>>;
+  onClose: () => void;
+}) {
+  const title = trimName(product.name);
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  const selIdx = Math.min(sizeSel[product.id] ?? 0, Math.max(0, variants.length - 1));
+  const selVariant = variants.length > 0 ? variants[selIdx] : undefined;
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  /* Focus the dialog on open, restore the trigger element on close; Escape
+     closes. Runs once per open — the modal only mounts while open. */
+  useEffect(() => {
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    panelRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      previouslyFocused?.focus();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const goFitGuide = (e: FormEvent) => {
+    e.preventDefault();
+    onClose();
+    window.setTimeout(() => {
+      document
+        .getElementById("fit-guide")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  };
+
+  const addFromModal = () => {
+    addToCart(
+      product.id,
+      1,
+      selVariant?.vid
+        ? { cjVid: selVariant.vid, size: selVariant.variantKey || selVariant.size }
+        : undefined
+    );
+    setCartOpen(true);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} aria-hidden="true" />
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quickview-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-gold/25 bg-noir shadow-2xl outline-none"
+      >
+        <div className="grid sm:grid-cols-2">
+          <div className="overflow-hidden sm:rounded-l-3xl">
+            <img
+              src={product.image}
+              alt={title}
+              className="aspect-square w-full bg-coal object-cover"
+            />
+          </div>
+          <div className="flex flex-col p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-3">
+              <span
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  product.collection === "luxe"
+                    ? "bg-gold text-noir"
+                    : "bg-crimson text-ivory"
+                }`}
+              >
+                {tagFor(product)}
+              </span>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close quick view"
+                className="rounded-full border border-gold/40 px-3 py-1.5 text-sm font-semibold text-goldlight transition hover:bg-gold/10"
+              >
+                ✕ Close
+              </button>
+            </div>
+            <h2
+              id="quickview-title"
+              className="font-display mt-3 text-xl leading-snug text-ivory sm:text-2xl"
+              title={product.name}
+            >
+              {title}
+            </h2>
+            <p className="mt-1 text-xs text-rosetaupe">Sizes: {product.sizes}</p>
+            <p className="font-display mt-2 text-2xl text-goldlight">
+              {moneyExact(product.retail)}
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-ivory/85">
+              {quickViewBlurb(product)}
+            </p>
+            {variants.length > 0 ? (
+              <label className="mt-4 flex items-center gap-2 text-xs text-rosetaupe">
+                <span className="shrink-0 font-semibold tracking-wide uppercase">Size</span>
+                <select
+                  value={String(selIdx)}
+                  onChange={(e) =>
+                    setSizeSel((s) => ({ ...s, [product.id]: parseInt(e.target.value, 10) || 0 }))
+                  }
+                  aria-label={`Choose size for ${title}`}
+                  className="min-w-0 flex-1 rounded-full border border-gold/30 bg-noir px-2.5 py-1.5 text-xs font-semibold text-ivory focus:border-goldlight focus:outline-none"
+                >
+                  {variants.map((v, i) => (
+                    <option key={v.vid || `${v.variantKey}-${i}`} value={String(i)}>
+                      {v.variantKey || v.size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <button
+              type="button"
+              onClick={addFromModal}
+              aria-label={`Add ${title} to cart${selVariant ? ` in size ${selVariant.variantKey || selVariant.size}` : ""}`}
+              className="mt-4 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-noir transition hover:bg-goldlight"
+            >
+              Add to cart 🛍
+            </button>
+            <p className="mt-4 rounded-2xl border border-gold/20 bg-noir/60 px-4 py-3 text-xs leading-relaxed text-rosetaupe">
+              Not sure on size? Check our{" "}
+              <a
+                href="#fit-guide"
+                onClick={goFitGuide}
+                className="font-semibold text-goldlight underline underline-offset-2 transition hover:text-gold"
+              >
+                Fit Promise &amp; AI Fit Finder
+              </a>{" "}
+              — or{" "}
+              <a
+                href="mailto:ember-lace-3f346695@ctomail.io"
+                className="font-semibold text-goldlight underline underline-offset-2 transition hover:text-gold"
+              >
+                Questions? Email us
+              </a>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
