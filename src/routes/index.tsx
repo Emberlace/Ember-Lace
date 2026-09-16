@@ -287,7 +287,7 @@ function Nav() {
           <button
             type="button"
             onClick={() => setCartOpen(true)}
-            aria-label={`Open cart, ${count} items`}
+            aria-label={`Open cart, ${count} ${count === 1 ? "item" : "items"}`}
             className="relative rounded-full border border-gold/50 px-4 py-2 text-sm font-semibold text-goldlight transition hover:border-goldlight hover:bg-gold/10"
           >
             🛍 Cart{count > 0 ? ` (${count})` : ""}
@@ -1392,7 +1392,7 @@ function Bestsellers() {
             <input
               id="catalog-search"
               type="search"
-              placeholder="Search styles — try “silk”, “garter”, “bralette”…"
+              placeholder="Search styles — try “lace”, “silk”, “bralette”…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="w-full rounded-full border border-gold/30 bg-noir px-5 py-2.5 text-sm text-ivory placeholder:text-rosetaupe/60 focus:border-goldlight focus:ring-2 focus:ring-gold/50 focus:outline-none"
