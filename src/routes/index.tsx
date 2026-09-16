@@ -279,6 +279,9 @@ function Nav() {
           <a href="#bestsellers" className="transition hover:text-goldlight">
             Bestsellers
           </a>
+          <a href="/marketing" className="transition hover:text-goldlight">
+            Marketing
+          </a>
         </nav>
         <div className="flex items-center gap-2 sm:order-3">
           <button
@@ -2722,6 +2725,9 @@ function Footer() {
             </a>
             <a href="/products.json" className="transition hover:text-goldlight">
               Product feed
+            </a>
+            <a href="/marketing" className="transition hover:text-goldlight">
+              Marketing Studio
             </a>
           </nav>
         </div>
