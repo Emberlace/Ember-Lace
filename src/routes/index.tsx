@@ -37,8 +37,10 @@ import {
 } from "../lib/cart-store";
 
 
-/* Live CJ catalog: 50 real products (id, name, wholesale, retail, image,
-   sizes, usWarehouse, cjPid, cjSku). Wholesale/margin never render. */
+/* Live CJ catalog: real CJ products (id, name, wholesale, retail, image,
+   sizes, usWarehouse, cjPid, cjSku). Wholesale/margin never render.
+   `usWarehouse` is internal sourcing metadata only — never shown to shoppers;
+   the string "unknown" means CJ returned no warehouse information. */
 type LiveProduct = {
   id: string;
   name: string;
@@ -49,7 +51,7 @@ type LiveProduct = {
   collection: Collection;
   cjPid: string;
   cjSku: string;
-  usWarehouse: boolean;
+  usWarehouse: boolean | "unknown";
   variants?: { size: string; variantKey: string; vid: string; variantSku: string }[];
 };
 
@@ -1581,8 +1583,8 @@ function Bestsellers() {
 /* ----------------------------- quick view modal ---------------------------- */
 /* Honest, in-code product copy: derived only from catalog facts (collection
    tier + size range). No fabric/material/construction claims — the catalog
-   has no such data. Varies by tier (and lightly by id) so all 132 products
-   read naturally. */
+   has no such data. Varies by tier (and lightly by id) so every product in the
+   catalog reads naturally. */
 function quickViewBlurb(p: LiveProduct): string {
   const range = p.sizes;
   let seed = 0;

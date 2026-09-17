@@ -1,16 +1,16 @@
 {
- "count": 132,
- "braCount": 39,
- "avgWholesale": 10.41,
- "avgRetail": 29.92,
- "avgMargin": 19.52,
- "usCount": 127,
- "unknownWarehouseCount": 5,
- "nonUsCount": 0,
+ "count": 145,
+ "braCount": 41,
+ "avgWholesale": 11.49,
+ "avgRetail": 32.43,
+ "avgMargin": 20.95,
+ "usCount": 140,
+ "unknownWarehouseCount": 0,
+ "nonUsCount": 5,
  "byCollection": {
   "lace": 13,
-  "everyday": 110,
-  "luxe": 9
+  "everyday": 117,
+  "luxe": 15
  },
- "source": "CJ catalog, +7.5% retail 2026-09-08 (add-largecup-luxe 2026-09-15: +16 real CJ products, junk matches removed -> 12 net new)"
+ "source": "CJ catalog, markup unchanged (2.2\u00d7 under $30 wholesale / 2.5\u00d7 above) \u2014 2026-09-16 sweep added 13 real CJ products (5 bras, 6 luxe gowns, 2 lingerie sets); 3 candidates dropped for colour-only variants (no honest size range)"
 }

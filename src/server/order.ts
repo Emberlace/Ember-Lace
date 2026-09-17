@@ -162,8 +162,8 @@ export function validateItems(
      "vid or variantSku must be not empty"; `vid` returns code 1602000
      "Variant not found" for a product-level id, proving the endpoint reads
      `vid`. Variant ids were harvested 2026-09-08 via GET /product/query into
-     live-catalog.json `variants[]` (98/120 products at time of writing; the
-     rest need a follow-up harvest run). validateOrderBody accepts an optional
+     live-catalog.json `variants[]` (most products; any remaining ones
+     need a follow-up harvest run). validateOrderBody accepts an optional
      cjVid per item and buildCjPayload prefers it, falling back to the
      product-level cjPid — which CJ rejects with 1602000, so items without a
      harvested variant cannot order yet. Do NOT invent a vid mapping here.
