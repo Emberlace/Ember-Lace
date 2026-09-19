@@ -84,7 +84,17 @@ async function submitCjOrder(
   console.log(
     `[stripe-webhook] ${label} fulfillment: name="${o.name}" address="${o.address.line1}, ${o.address.city} ${o.address.state} ${o.address.zip} ${o.address.country}"`
   );
-  const payload = buildCjPayload(checked.order, opts);
+  // Balance payment at creation is OPT-IN and off unless the owner signs off:
+  // CJ_PAY_FROM_BALANCE=1 makes CJ charge the order against the CJ account
+  // balance as the order is created (sandbox-validated 2026-09-19: payType:2
+  // creates cleanly and stays unpaid while the balance is $0). Unset ⇒ the
+  // previous behaviour (order created unpaid, the supervised sweeper
+  // cj-pay-sweep.sh pays it later from a ref-matched captured charge).
+  const payFromBalance = process.env.CJ_PAY_FROM_BALANCE === "1";
+  const payload = buildCjPayload(checked.order, {
+    ...opts,
+    ...(payFromBalance ? { payType: 2 } : {}),
+  });
   const cj = (await cjCreateOrder(payload)) as {
     code?: number;
     message?: string;
@@ -92,7 +102,7 @@ async function submitCjOrder(
   };
   // Server-side only: log code/message (never keys/tokens).
   console.log(
-    `[stripe-webhook] CJ createOrder for ${label} ref ${payload.orderNumber}: code=${String(cj?.code)} message=${String(cj?.message ?? "").slice(0, 200)}`
+    `[stripe-webhook] CJ createOrder for ${label} ref ${payload.orderNumber}: payType=${String(payload.payType ?? "default")} code=${String(cj?.code)} message=${String(cj?.message ?? "").slice(0, 200)}`
   );
   if (cj?.code !== 200) {
     // Duplicate-ref rejection: the payload used a caller-provided orderNumber

@@ -167,13 +167,23 @@ export function validateItems(
      cjVid per item and buildCjPayload prefers it, falling back to the
      product-level cjPid — which CJ rejects with 1602000, so items without a
      harvested variant cannot order yet. Do NOT invent a vid mapping here.
-   - payType omitted → default page payment (no balance charge; unpaid order
-     waits for payment). Never add payType=2 (balance) without owner sign-off.
+   - payType (2026-09-19, sandbox-validated): CJ "1/omitted" = page payment (the
+     order waits for a human), "2" = balance payment. Free sandbox evidence
+     (isSandbox:1, createOrderV2): payType:2 returns code 200 and the order is
+     created with paymentDate null while the balance is $0.00 — i.e. creation is
+     NOT blocked by an empty balance, the order simply stays unpaid. Because
+     that evidence is sandbox-only (a real order cannot be tested without
+     spending), payType:2 is wired but OFF by default: the caller must pass
+     opts.payType explicitly, and the webhook only does that when the env flag
+     CJ_PAY_FROM_BALANCE=1 is set (owner sign-off + funded balance). With the
+     flag unset, behaviour is byte-for-byte what it was — orders are created
+     unpaid and the supervised sweeper (cj-pay-sweep.sh) pays them later, and
+     only when the ref is provably tied to a captured Stripe charge.
    Exact schema varies by app version; CJ returns code/message which the route
    logs server-side only. */
 export function buildCjPayload(
   order: ValidatedOrder,
-  opts?: { orderNumber?: string },
+  opts?: { orderNumber?: string; payType?: number },
 ): Record<string, unknown> {
   // Light sanity check for a caller-supplied orderNumber (2-40 chars, safe
   // charset): only then do we trust it to become the CJ orderNumber.
@@ -210,5 +220,9 @@ export function buildCjPayload(
       vid: it.cjVid ?? it.cjPid,
       quantity: it.qty,
     })),
+    // Balance payment at creation — only when the caller explicitly asks
+    // (webhook: env CJ_PAY_FROM_BALANCE=1). Omitted ⇒ CJ's default page
+    // payment, i.e. exactly the previous behaviour.
+    ...(opts?.payType ? { payType: opts.payType } : {}),
   };
 }
