@@ -1565,7 +1565,7 @@ function Bestsellers() {
             )}
             <p className="mt-6 text-center text-xs text-rosetaupe/80">
           Prices in USD. 10% off orders over $250, applied automatically at checkout.
-          Every paid order returns to a confirmation page and is sent to our warehouse.
+          Every paid order returns to a confirmation page and is packed for shipment in discreet packaging.
         </p>
       </div>
       {quickView ? (
@@ -2128,7 +2128,7 @@ function CheckoutModal() {
               Order ref: <strong className="text-goldlight">{success.orderRef}</strong>
               {success.cjOrderId ? (
                 <>
-                  {" · "}Warehouse id: <strong className="text-goldlight">{success.cjOrderId}</strong>
+                  {" · "}CJ order id: <strong className="text-goldlight">{success.cjOrderId}</strong>
                 </>
               ) : null}
             </p>
@@ -2616,7 +2616,7 @@ function TrackOrder() {
         <p className="mt-3 text-[15px] leading-relaxed text-rosetaupe">
           Paste the order ref from your confirmation email (looks like{" "}
           <strong className="text-ivory">EL-XXXXXX</strong>) and we'll check its
-          status with our warehouse.
+          status with our packing team.
         </p>
         <form
           onSubmit={lookup}

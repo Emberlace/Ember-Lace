@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/order")({
               {
                 ok: false,
                 error:
-                  "Our warehouse couldn't take this order just now — we'll confirm your payment email and follow up shortly.",
+                  "Our fulfillment partner couldn't take this order just now — we'll confirm your payment email and follow up shortly.",
               },
               { status: 502 }
             );
@@ -70,7 +70,7 @@ export const Route = createFileRoute("/api/order")({
             {
               ok: false,
               error:
-                "Our warehouse couldn't take this order just now — we'll confirm your payment email and follow up shortly.",
+                "Our fulfillment partner couldn't take this order just now — we'll confirm your payment email and follow up shortly.",
             },
             { status: 502 }
           );

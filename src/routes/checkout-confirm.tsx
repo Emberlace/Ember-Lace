@@ -199,8 +199,8 @@ function CheckoutConfirm() {
           <div className="lace-dots w-full rounded-2xl border-2 border-gold bg-card p-8">
             <p className="font-display text-3xl text-goldlight">Thank you ♡</p>
             <p className="mt-2 text-sm leading-relaxed text-ivory/90">
-              Payment received — your order is headed to our US warehouse in
-              discreet, unmarked packaging. We'll email you when it ships.
+              Payment received — your order is being packed in discreet,
+              unmarked packaging. We'll email you when it ships.
             </p>
             {status.orderRef ? (
               <p className="mt-4 rounded-xl bg-noir/60 px-4 py-3 text-sm text-ivory/85 ring-1 ring-gold/20">

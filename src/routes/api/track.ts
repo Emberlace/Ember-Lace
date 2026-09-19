@@ -27,7 +27,7 @@ function friendly(status: string | null): string {
       return "Delivered — enjoy ♡";
     case "PROCESSING":
     case "PENDING":
-      return "Being prepared at our US warehouse";
+      return "Being prepared for shipment — packing your order";
     case "UNSHIPPED":
     case "PAID":
       return "Paid — packing it up in discreet packaging";
@@ -85,7 +85,7 @@ export const Route = createFileRoute("/api/track")({
                 cjMessage: String(cj?.message ?? "").slice(0, 200),
                 error: notFound
                   ? "We couldn't find that order ref — check the code from your confirmation and try again."
-                  : "Our warehouse couldn't be reached just now — please try again in a moment.",
+                  : "We couldn't check your order just now — please try again in a moment.",
               },
               { status: notFound ? 404 : 502 },
             );
@@ -133,7 +133,7 @@ export const Route = createFileRoute("/api/track")({
             {
               ok: false,
               error:
-                "Our warehouse couldn't be reached just now — please try again in a moment.",
+                "We couldn't check your order just now — please try again in a moment.",
             },
             { status: 502 },
           );
