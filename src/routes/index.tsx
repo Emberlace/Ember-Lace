@@ -185,17 +185,17 @@ function LaunchDropBanner() {
   return (
     <div
       role="note"
-      aria-label="Launch drop offer"
+      aria-label="Shipping times"
       className="flex items-center justify-center gap-3 bg-gold px-4 py-2 text-center text-[13px] font-semibold tracking-wide text-noir"
     >
       <span>
-        LAUNCH DROP — first 50 orders get a free discreet-packaging upgrade ·
-        10% off $250+ auto-applied
+        📦 Every order ships with tracking in discreet packaging — typically
+        5–11 days to your door · 10% off $250+ auto-applied at checkout
       </span>
       <button
         type="button"
         onClick={() => setVisible(false)}
-        aria-label="Dismiss launch drop banner"
+        aria-label="Dismiss shipping banner"
         className="rounded-full border border-noir/30 px-2 py-0.5 text-xs font-bold leading-none transition hover:bg-noir/10"
       >
         ✕
@@ -1915,13 +1915,16 @@ function CartDrawer() {
                 <span>Total</span>
                 <span className="font-display text-goldlight">{moneyExact(total)}</span>
               </div>
+              <p className="mt-3 text-center text-xs text-rosetaupe">
+                📦 Ships with tracking in discreet packaging — typically 5–11 days to your door.
+              </p>
               <button
                 type="button"
                 onClick={() => {
                   setCartOpen(false);
                   setCheckoutOpen(true);
                 }}
-                className="mt-4 w-full rounded-full bg-gold px-6 py-3 text-sm font-semibold text-noir shadow-lg transition hover:bg-goldlight"
+                className="mt-3 w-full rounded-full bg-gold px-6 py-3 text-sm font-semibold text-noir shadow-lg transition hover:bg-goldlight"
               >
                 Checkout · {moneyExact(total)}
               </button>
