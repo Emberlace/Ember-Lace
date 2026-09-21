@@ -370,22 +370,25 @@ function Hero() {
             📦 Ships in plain, unmarked packaging
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4" aria-hidden>
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 lg:justify-end" aria-hidden>
           {[
-            { label: "Everyday", style: "linear-gradient(150deg,#0f1f1a,#2f5d50)" },
-            { label: "Lace", style: "linear-gradient(150deg,#1c0f22,#5b2a6e)" },
-            { label: "Spice", style: "linear-gradient(150deg,#2a0f18,#a31621)" },
-            { label: "XS–4X", style: "linear-gradient(150deg,#100b0e,#6b551f 130%)" },
-          ].map((t) => (
-            <div
-              key={t.label}
-              className="lace-dots flex aspect-[3/4] items-end rounded-2xl p-4 shadow-xl ring-1 ring-gold/40"
-              style={{ background: t.style }}
+            "Everyday essentials",
+            "Lace & spice",
+            "Statement pieces",
+            "XS\u20134X \u00b7 30A\u201344H+",
+          ].map((t, i) => (
+            <span
+              key={t}
+              className="font-display flex items-center text-base text-ivory/90 italic sm:text-lg"
             >
-              <span className="font-display text-lg text-ivory italic">
-                {t.label}
-              </span>
-            </div>
+              {i > 0 && (
+                <span
+                  aria-hidden
+                  className="mr-5 inline-block h-1 w-1 rounded-full bg-gold/70"
+                />
+              )}
+              {t}
+            </span>
           ))}
         </div>
       </div>
