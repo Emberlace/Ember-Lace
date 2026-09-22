@@ -181,13 +181,17 @@ async function findSupervisorPids(): Promise<{
  * Check the supervisor once and respawn it if it is missing.
  * Never throws — every outcome is reported in the return value and the log.
  */
-export async function ensureSupervisor(trigger = "manual"): Promise<HealResult> {
+export async function ensureSupervisor(
+  trigger = "manual",
+): Promise<HealResult> {
   const checkedAt = stamp();
   try {
     const { pids, warning } = await findSupervisorPids();
 
     if (warning !== undefined) {
-      log(`probe warning [${trigger}]: ${warning} (alive=${String(pids.length)})`);
+      log(
+        `probe warning [${trigger}]: ${warning} (alive=${String(pids.length)})`,
+      );
     }
 
     if (pids.length > 0) {
@@ -195,7 +199,9 @@ export async function ensureSupervisor(trigger = "manual"): Promise<HealResult> 
       healState.supervisePids = pids;
       healState.lastError = warning ?? null;
       if (lastKnownRunning !== true) {
-        log(`supervise.sh alive (pid ${pids.join(",")}) — nothing to do [${trigger}]`);
+        log(
+          `supervise.sh alive (pid ${pids.join(",")}) — nothing to do [${trigger}]`,
+        );
       }
       lastKnownRunning = true;
       return { running: true, pids, spawned: false, checkedAt };
@@ -250,7 +256,13 @@ export async function ensureSupervisor(trigger = "manual"): Promise<HealResult> 
     log(`heal FAILED (server unaffected): ${message} [${trigger}]`);
     healState.lastCheck = checkedAt;
     healState.lastError = message;
-    return { running: false, pids: [], spawned: false, checkedAt, error: message };
+    return {
+      running: false,
+      pids: [],
+      spawned: false,
+      checkedAt,
+      error: message,
+    };
   }
 }
 
