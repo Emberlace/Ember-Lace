@@ -1,8 +1,32 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
+
+/* Boot hook for the watcher chain self-heal (see src/server/watcher-heal.ts).
+   This dev server is the platform-managed process on port 3000 and the only
+   thing here that auto-restarts after a machine recycle, so its boot is where
+   we notice that supervise.sh (keepalive / cj-watch / cj-pay-sweep) has died.
+   `apply: "serve"` makes it dev-server-only: a `vite build` never runs it, and
+   nothing is spawned at build time. The dynamic import keeps the heal module
+   off the config-load path. Failures are swallowed — a heal problem must never
+   stop the dev server from serving. */
+function watcherHeal(): Plugin {
+  return {
+    name: "watcher-heal",
+    apply: "serve",
+    configureServer() {
+      void import("./src/server/watcher-heal.ts")
+        .then(({ startWatcherHeal }) => {
+          startWatcherHeal("vite-dev");
+        })
+        .catch(() => {
+          /* never break the dev server over the self-heal */
+        });
+    },
+  };
+}
 
 export default defineConfig({
   server: {
@@ -34,6 +58,7 @@ export default defineConfig({
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
+    watcherHeal(),
     tanstackStart(),
     viteReact(),
   ],

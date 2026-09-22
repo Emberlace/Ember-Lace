@@ -56,3 +56,19 @@ for (let attempt = 1; ; attempt++) {
 }
 
 console.log(`team-site serving on http://${HOST}:${String(PORT)}`);
+
+// Boot the watcher-chain self-heal for the production server, same as the dev
+// server does from vite.config.ts: this process has just auto-restarted (which
+// is exactly what the nohup'd watcher chain does NOT do after a machine
+// recycle), so it is the reliable hook for noticing that
+// /home/team/shared/supervise.sh is gone and respawning it. Non-blocking: the
+// first check is on a timer and touches nothing on the request path, the
+// module never throws, and it neither sets nor changes any env var — the
+// respawned sweeper keeps its DRY-RUN default (real CJ payment still requires
+// CJ_PAY_LIVE=1, which is not set here).
+try {
+  const { startWatcherHeal } = await import("./src/server/watcher-heal.ts");
+  startWatcherHeal("serve.ts");
+} catch (err) {
+  console.error("watcher-heal not started:", err);
+}
